@@ -1,7 +1,15 @@
 package configs
 
-import "errors"
+import (
+	"os"
+)
 
-func New() error {
-	return errors.New("not implemented")
+type Config struct {
+	ApiKey string
+}
+
+func New() (*Config, error) {
+	return &Config{
+		ApiKey: os.Getenv("YT_API_KEY"),
+	}, nil
 }
