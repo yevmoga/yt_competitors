@@ -24,10 +24,16 @@ func main() {
 		log.Fatal().Err(err).Msg("error init youtube cli")
 	}
 
-	channelId, err := yt.getChannelID(channelURL)
+	channelID, err := yt.GetChannelID(channelURL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("error getting channel id")
 	}
 
-	fmt.Printf("Channel ID: %s\n", channelId)
+	videos, err := yt.GetVideos(channelID)
+	if err != nil {
+		log.Fatal().Err(err).Msg("error getting videos")
+	}
+	for _, video := range videos {
+		fmt.Printf("Video: %s\n", video.Title)
+	}
 }

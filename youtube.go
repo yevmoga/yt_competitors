@@ -9,6 +9,8 @@ import (
 	yt "google.golang.org/api/youtube/v3"
 )
 
+const LimitVideosAmount = 10
+
 type YT struct {
 	cli *yt.Service
 }
@@ -22,7 +24,7 @@ func New(ctx context.Context, apiKey string) (*YT, error) {
 	return &YT{cli: yts}, nil
 }
 
-func (y *YT) getChannelID(channelURL string) (string, error) {
+func (y *YT) GetChannelID(channelURL string) (string, error) {
 	reHandle := regexp.MustCompile(`youtube\.com/@([a-zA-Z0-9_-]+)`)
 
 	if match := reHandle.FindStringSubmatch(channelURL); match != nil {
@@ -40,13 +42,45 @@ func (y *YT) getChannelIDByHandle(handle string) (string, error) {
 
 	response, err := call.Do()
 	if err != nil {
-		return "", fmt.Errorf("помилка пошуку каналу: %v", err)
+		return "", fmt.Errorf("error searching the channel: %v", err)
 	}
 
-	// Перевіряємо, чи отримано результат і повертаємо channelId
-	if len(response.Items) == 0 {
-		return "", fmt.Errorf("канал не знайдено")
+	if len(response.Items) == 0 || response.Items[0].Id == nil || len(response.Items[0].Id.ChannelId) == 0 {
+		return "", fmt.Errorf("the channel ID couldn't be found: %s", handle)
 	}
 
 	return response.Items[0].Id.ChannelId, nil
+}
+
+func (y *YT) GetVideos(channelID string) ([]*Video, error) {
+	call := y.cli.Search.List([]string{"snippet"}).
+		ChannelId(channelID).
+		Type("video").
+		Order("date"). // Sort by date (newest - first)
+		MaxResults(LimitVideosAmount)
+
+	response, err := call.Do()
+	if err != nil {
+		return nil, fmt.Errorf("error getting videos: %v", err)
+	}
+
+	videos := make([]*Video, 0, LimitVideosAmount)
+	for _, item := range response.Items {
+		video := &Video{
+			Title:   item.Snippet.Title,
+			VideoID: item.Id.VideoId,
+		}
+		videos = append(videos, video)
+	}
+
+	return videos, nil
+}
+
+type Video struct {
+	Title        string
+	VideoID      string
+	Views        uint64
+	Likes        uint64
+	Dislikes     uint64
+	CommentCount uint64
 }
