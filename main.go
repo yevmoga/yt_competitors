@@ -1,31 +1,33 @@
 package main
 
 import (
+	"context"
 	"fmt"
+
 	"yt_competitors/configs"
+
+	"github.com/rs/zerolog/log"
 )
 
-//TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.
+const channelURL = "https://www.youtube.com/@i-hate-the-concert" // todo: get from request
 
 func main() {
-	//TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
-	// to see how GoLand suggests fixing it.
-	s := "gopher"
-	fmt.Println("Hello and welcome, %s!", s)
+	log.Trace().Msg("starting yt_competitors")
 
-	for i := 1; i <= 3; i++ {
-		//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session,
-		// right-click your code in the editor and select the <b>Debug</b> option.
-		fmt.Println("i =", 100/i)
-	}
-
-	err := configs.New()
+	cfg, err := configs.New()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal().Err(err).Msg("error in configs.New")
 	}
-}
 
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
+	yt, err := New(context.Background(), cfg.ApiKey)
+	if err != nil {
+		log.Fatal().Err(err).Msg("error init youtube cli")
+	}
+
+	channelId, err := yt.getChannelID(channelURL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("error getting channel id")
+	}
+
+	fmt.Printf("Channel ID: %s\n", channelId)
+}
