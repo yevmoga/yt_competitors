@@ -34,6 +34,6 @@ func main() {
 		log.Fatal().Err(err).Msg("error getting videos")
 	}
 	for _, video := range videos {
-		fmt.Printf("Video: %s\n", video.Title)
+		fmt.Printf("[%і]ʼ%sʼ: has %d views, %d likes and %d comments\n", video.PublishedAt, video.Title, video.Views, video.Likes, video.CommentCount)
 	}
 }

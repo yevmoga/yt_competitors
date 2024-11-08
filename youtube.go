@@ -24,6 +24,16 @@ func New(ctx context.Context, apiKey string) (*YT, error) {
 	return &YT{cli: yts}, nil
 }
 
+type Video struct {
+	Title        string
+	VideoID      string
+	PublishedAt  string
+	Views        uint64
+	Likes        uint64
+	Dislikes     uint64
+	CommentCount uint64
+}
+
 func (y *YT) GetChannelID(channelURL string) (string, error) {
 	reHandle := regexp.MustCompile(`youtube\.com/@([a-zA-Z0-9_-]+)`)
 
@@ -64,23 +74,36 @@ func (y *YT) GetVideos(channelID string) ([]*Video, error) {
 		return nil, fmt.Errorf("error getting videos: %v", err)
 	}
 
-	videos := make([]*Video, 0, LimitVideosAmount)
+	vIDs := make([]string, 0, LimitVideosAmount)
 	for _, item := range response.Items {
+		vIDs = append(vIDs, item.Id.VideoId)
+	}
+
+	return y.getVideoStatistic(vIDs)
+}
+
+func (y *YT) getVideoStatistic(videoIDs []string) ([]*Video, error) {
+	statsCall := y.cli.Videos.List([]string{"snippet", "statistics"}).
+		Id(videoIDs...)
+
+	statsResponse, err := statsCall.Do()
+	if err != nil {
+		return nil, fmt.Errorf("помилка отримання статистики відео: %v", err)
+	}
+
+	videos := make([]*Video, 0, LimitVideosAmount)
+	for _, item := range statsResponse.Items {
 		video := &Video{
-			Title:   item.Snippet.Title,
-			VideoID: item.Id.VideoId,
+			Title:        item.Snippet.Title,
+			PublishedAt:  item.Snippet.PublishedAt,
+			VideoID:      item.Id,
+			Views:        item.Statistics.ViewCount,
+			Likes:        item.Statistics.LikeCount,
+			Dislikes:     item.Statistics.DislikeCount,
+			CommentCount: item.Statistics.CommentCount,
 		}
 		videos = append(videos, video)
 	}
 
 	return videos, nil
-}
-
-type Video struct {
-	Title        string
-	VideoID      string
-	Views        uint64
-	Likes        uint64
-	Dislikes     uint64
-	CommentCount uint64
 }
