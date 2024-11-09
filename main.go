@@ -28,6 +28,7 @@ func main() {
 	r.GET("/channel", s.Channel)
 	r.GET("/videos/:channelURL", s.Videos)
 
+	log.Trace().Msg("ran router")
 	err = r.Run() // listen and serve on 0.0.0.0:8080
 	if err != nil {
 		log.Fatal().Err(err).Msg("error run")

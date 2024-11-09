@@ -24,8 +24,9 @@ func (s *Service) Channel(c *gin.Context) {
 	})
 }
 
-// const channelURL = "https://www.youtube.com/@i-hate-the-concert" // todo: get from request
 func (s *Service) Videos(c *gin.Context) {
+	log.Trace().Msg("get videos")
+
 	channelURL := c.Param("channelURL")
 
 	channelID, err := s.yt.GetChannelID(channelURL)
@@ -33,7 +34,7 @@ func (s *Service) Videos(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "error getting channel id",
 		})
-		log.Fatal().Err(err).Msg("error getting channel id")
+		log.Error().Err(err).Msg("error getting channel id")
 		return
 	}
 
@@ -42,7 +43,7 @@ func (s *Service) Videos(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "error getting videos",
 		})
-		log.Fatal().Err(err).Msg("error getting videos")
+		log.Error().Err(err).Msg("error getting videos")
 		return
 	}
 

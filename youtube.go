@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"google.golang.org/api/option"
 	yt "google.golang.org/api/youtube/v3"
@@ -35,10 +36,28 @@ type Video struct {
 }
 
 func (y *YT) GetChannelID(channelURL string) (string, error) {
-	reHandle := regexp.MustCompile(`youtube\.com/@([a-zA-Z0-9_-]+)`)
+	chTitle, err := getChannelTitle(channelURL)
+	if err != nil {
+		return "", err
+	}
 
+	return y.getChannelIDByHandle(chTitle)
+}
+
+func getChannelTitle(channelURL string) (string, error) {
+	if !strings.Contains(channelURL, "youtube.com") {
+		// @i-hate-the-concert <- with @
+		if channelURL[0] == '@' {
+			return channelURL[1:], nil
+		}
+		// i-hate-the-concert <- without @
+		return channelURL, nil
+	}
+
+	// if https://www.youtube.com/@i-hate-the-concert
+	reHandle := regexp.MustCompile(`youtube\.com/@([a-zA-Z0-9_-]+)`)
 	if match := reHandle.FindStringSubmatch(channelURL); match != nil {
-		return y.getChannelIDByHandle(match[1])
+		return match[1], nil
 	}
 
 	return "", fmt.Errorf("unknown URL format: %s", channelURL)
