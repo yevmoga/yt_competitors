@@ -38,6 +38,15 @@ func (s *Service) Videos(c *gin.Context) {
 		return
 	}
 
+	chData, err := s.yt.GetChannelInfo(channelID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "error getting channel data",
+		})
+		log.Error().Err(err).Msg("error getting channel data")
+		return
+	}
+
 	videos, err := s.yt.GetVideos(channelID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -48,6 +57,10 @@ func (s *Service) Videos(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"videos": videos,
+		"channelName":     chData.Snippet.Title,
+		"subscriberCount": chData.Statistics.SubscriberCount,
+		"viewCount":       chData.Statistics.ViewCount,
+		"videoCount":      chData.Statistics.VideoCount,
+		"videos":          videos,
 	})
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -63,19 +64,19 @@ func getChannelTitle(channelURL string) (string, error) {
 	return "", fmt.Errorf("unknown URL format: %s", channelURL)
 }
 
-func (y *YT) getChannelIDByHandle(handle string) (string, error) {
+func (y *YT) getChannelIDByHandle(channelURL string) (string, error) {
 	call := y.cli.Search.List([]string{"snippet"}).
-		Q(handle).
+		Q(channelURL).
 		Type("channel").
 		MaxResults(1)
 
 	response, err := call.Do()
 	if err != nil {
-		return "", fmt.Errorf("error searching the channel: %v", err)
+		return "", fmt.Errorf("error searching the ʼ%sʼ channel: %v", channelURL, err)
 	}
 
 	if len(response.Items) == 0 || response.Items[0].Id == nil || len(response.Items[0].Id.ChannelId) == 0 {
-		return "", fmt.Errorf("the channel ID couldn't be found: %s", handle)
+		return "", fmt.Errorf("the channel ID couldn't be found: %s", channelURL)
 	}
 
 	return response.Items[0].Id.ChannelId, nil
@@ -125,4 +126,18 @@ func (y *YT) getVideoStatistic(videoIDs []string) ([]*Video, error) {
 	}
 
 	return videos, nil
+}
+
+func (y *YT) GetChannelInfo(channelID string) (*yt.Channel, error) {
+	call := y.cli.Channels.List([]string{"snippet", "statistics"}).Id(channelID)
+
+	response, err := call.Do()
+	if err != nil {
+		return nil, errors.New("error getting channel data")
+	}
+
+	if response == nil || len(response.Items) == 0 {
+		return nil, errors.New("channel data not found")
+	}
+	return response.Items[0], nil
 }
