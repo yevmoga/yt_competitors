@@ -34,6 +34,7 @@ type Video struct {
 	Likes        uint64
 	Dislikes     uint64
 	CommentCount uint64
+	Tags         []string
 }
 
 func (y *YT) GetChannelID(channelURL string) (string, error) {
@@ -121,6 +122,7 @@ func (y *YT) getVideoStatistic(videoIDs []string) ([]*Video, error) {
 			Likes:        item.Statistics.LikeCount,
 			Dislikes:     item.Statistics.DislikeCount,
 			CommentCount: item.Statistics.CommentCount,
+			Tags:         item.Snippet.Tags,
 		}
 		videos = append(videos, video)
 	}
@@ -129,7 +131,7 @@ func (y *YT) getVideoStatistic(videoIDs []string) ([]*Video, error) {
 }
 
 func (y *YT) GetChannelInfo(channelID string) (*yt.Channel, error) {
-	call := y.cli.Channels.List([]string{"snippet", "statistics"}).Id(channelID)
+	call := y.cli.Channels.List([]string{"snippet", "statistics", "topicDetails"}).Id(channelID)
 
 	response, err := call.Do()
 	if err != nil {

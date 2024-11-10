@@ -61,6 +61,7 @@ func (s *Service) Videos(c *gin.Context) {
 		"subscriberCount": chData.Statistics.SubscriberCount,
 		"viewCount":       chData.Statistics.ViewCount,
 		"videoCount":      chData.Statistics.VideoCount,
+		"tags":            chData.TopicDetails.TopicCategories,
 		"videos":          videos,
 	})
 }
