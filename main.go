@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"yt_competitors/configs"
@@ -10,6 +11,23 @@ import (
 )
 
 func main() {
+
+	// Приклад назви та тегів двох відео
+	titleA := []string{"go", "tutorial", "introduction"}
+	titleB := []string{"golang", "guide", "beginner"}
+	tagsA := []string{"go", "golang", "programming"}
+	tagsB := []string{"golang", "code", "development"}
+
+	// Обчислюємо схожість
+	titleSim, tagsSim, err := calculateSimilarity(titleA, titleB, tagsA, tagsB)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	fmt.Printf("Title Similarity: %.2f\n", titleSim)
+	fmt.Printf("Tags Similarity: %.2f\n", tagsSim)
+
 	log.Trace().Msg("starting yt_competitors")
 
 	cfg, err := configs.New()
